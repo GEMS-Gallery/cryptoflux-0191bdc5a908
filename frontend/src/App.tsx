@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { KeyboardArrowDown, CameraAlt, Settings } from '@mui/icons-material';
-import { CircularProgress, Button, TextField } from '@mui/material';
-import { backend } from 'declarations/backend';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -16,88 +14,68 @@ const mockChartData = [
   { time: 'Sep', price: 3.45 },
 ];
 
+const orderBookData = [
+  { price: 3.62, qty: 1000.00, total: 3620.00 },
+  { price: 3.61, qty: 1000.00, total: 3610.00 },
+  { price: 3.60, qty: 1000.00, total: 3600.00 },
+  { price: 3.59, qty: 1000.00, total: 3590.00 },
+  { price: 3.58, qty: 1000.00, total: 3580.00 },
+  { price: 3.57, qty: 1000.00, total: 3570.00 },
+  { price: 3.56, qty: 1000.00, total: 3560.00 },
+  { price: 3.55, qty: 1000.00, total: 3550.00 },
+];
+
 const CryptoTradingMockup = () => {
   const [orderType, setOrderType] = useState('Market');
-  const [chartData, setChartData] = useState(mockChartData);
-  const [orderBookData, setOrderBookData] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const priceData = await backend.getPriceData();
-        const formattedPriceData = priceData.map(([time, price]) => ({
-          time: new Date(Number(time) / 1000000).toLocaleDateString(),
-          price: Number(price)
-        }));
-        setChartData(formattedPriceData);
-
-        const orderBook = await backend.getOrderBook();
-        setOrderBookData(orderBook.map(([price, qty, total]) => ({ price, qty, total })));
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleTrade = async (isBuy) => {
-    setLoading(true);
-    try {
-      // In a real app, you'd get these values from form inputs
-      const price = 3.5;
-      const quantity = 100;
-      await backend.placeMockOrder(price, quantity, isBuy);
-      // In a real app, you'd update the UI or fetch new data here
-    } catch (error) {
-      console.error('Error placing order:', error);
-    } finally {
-      setLoading(false);
-    }
+  const chartData = {
+    labels: mockChartData.map(data => data.time),
+    datasets: [
+      {
+        label: 'Price',
+        data: mockChartData.map(data => data.price),
+        borderColor: '#22C55E',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+      },
+    ],
   };
-
-  if (loading) {
-    return <CircularProgress />;
-  }
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     scales: {
       x: {
-        ticks: { color: '#4B5563' },
-        grid: { display: false }
+        grid: {
+          display: false,
+        },
+        ticks: {
+          color: '#4B5563',
+        },
       },
       y: {
-        ticks: { color: '#4B5563' },
-        grid: { color: '#374151' },
-        position: 'right' as const
-      }
+        position: 'right' as const,
+        grid: {
+          color: '#374151',
+        },
+        ticks: {
+          color: '#4B5563',
+        },
+      },
     },
     plugins: {
-      legend: { display: false },
+      legend: {
+        display: false,
+      },
       tooltip: {
         backgroundColor: '#1F2937',
         titleColor: '#E5E7EB',
         bodyColor: '#E5E7EB',
         borderColor: '#374151',
-        borderWidth: 1
-      }
-    }
-  };
-
-  const chartDataConfig = {
-    labels: chartData.map(data => data.time),
-    datasets: [
-      {
-        data: chartData.map(data => data.price),
-        borderColor: '#22C55E',
-        borderWidth: 1.5,
-        pointRadius: 0
-      }
-    ]
+        borderWidth: 1,
+      },
+    },
   };
 
   return (
@@ -110,7 +88,7 @@ const CryptoTradingMockup = () => {
             <KeyboardArrowDown fontSize="small" />
           </div>
         </div>
-        <Button variant="contained" color="primary">Select Wallet</Button>
+        <button className="px-4 py-1 bg-indigo-600 text-white text-sm rounded">Select Wallet</button>
       </header>
       <main className="flex flex-1 overflow-hidden">
         <div className="flex-1 p-2">
@@ -123,15 +101,15 @@ const CryptoTradingMockup = () => {
               </div>
             </div>
             <div className="flex space-x-1 items-center">
-              <Button variant="outlined" size="small">1m</Button>
-              <Button variant="outlined" size="small">30m</Button>
-              <Button variant="contained" size="small">1h</Button>
+              <button className="px-2 py-0.5 bg-gray-700 rounded text-xs">1m</button>
+              <button className="px-2 py-0.5 bg-gray-700 rounded text-xs">30m</button>
+              <button className="px-2 py-0.5 bg-blue-600 rounded text-xs">1h</button>
               <CameraAlt fontSize="small" className="ml-2" />
               <Settings fontSize="small" className="ml-2" />
             </div>
           </div>
           <div className="h-96 mb-4">
-            <Line options={chartOptions} data={chartDataConfig} />
+            <Line data={chartData} options={chartOptions} />
           </div>
         </div>
         <div className="w-80 bg-gray-800 border-l border-gray-700 flex flex-col">
@@ -162,26 +140,21 @@ const CryptoTradingMockup = () => {
           <div className="p-2 flex-1">
             <h2 className="text-sm font-semibold mb-2">Trade</h2>
             <div className="flex mb-2">
-              <Button variant="outlined" fullWidth>Cross</Button>
-              <Button variant="outlined" fullWidth>10.00x</Button>
+              <button className="flex-1 py-1 px-2 bg-gray-700 text-xs rounded-l">Cross</button>
+              <button className="flex-1 py-1 px-2 bg-gray-900 text-xs">10.00x</button>
             </div>
             <div className="flex mb-2">
-              <Button variant="contained" color="primary" fullWidth onClick={() => setOrderType('Limit')}>Limit</Button>
-              <Button variant="contained" color="secondary" fullWidth onClick={() => setOrderType('Market')}>Market</Button>
+              <button className="flex-1 py-1 px-2 bg-gray-700 text-xs rounded-l">Limit</button>
+              <button className="flex-1 py-1 px-2 bg-yellow-600 text-xs rounded-r">Market</button>
             </div>
-            <TextField
-              fullWidth
-              type="number"
-              label="Amount"
-              variant="outlined"
-              size="small"
-              className="mb-2"
-            />
+            <div className="mb-2">
+              <input type="number" className="w-full p-1 bg-gray-700 text-xs rounded" placeholder="0.00" />
+            </div>
             <div className="grid grid-cols-4 gap-1 mb-2">
-              <Button variant="outlined" size="small">10%</Button>
-              <Button variant="outlined" size="small">25%</Button>
-              <Button variant="outlined" size="small">50%</Button>
-              <Button variant="outlined" size="small">75%</Button>
+              <button className="p-1 bg-gray-700 text-xs rounded">10%</button>
+              <button className="p-1 bg-gray-700 text-xs rounded">25%</button>
+              <button className="p-1 bg-gray-700 text-xs rounded">50%</button>
+              <button className="p-1 bg-gray-700 text-xs rounded">75%</button>
             </div>
             <div className="flex justify-between text-xs mb-2">
               <span>Value</span>
@@ -192,8 +165,8 @@ const CryptoTradingMockup = () => {
               <span>-- / -- USDT</span>
             </div>
             <div className="flex space-x-2 mb-2">
-              <Button variant="contained" color="success" fullWidth onClick={() => handleTrade(true)}>Buy</Button>
-              <Button variant="contained" color="error" fullWidth onClick={() => handleTrade(false)}>Sell</Button>
+              <button className="flex-1 py-2 bg-green-600 rounded text-sm">Buy</button>
+              <button className="flex-1 py-2 bg-red-600 rounded text-sm">Sell</button>
             </div>
             <div className="text-xs">
               <div className="flex justify-between">
