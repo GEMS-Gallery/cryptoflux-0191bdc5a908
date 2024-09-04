@@ -1,0 +1,13 @@
+type Time = int;
+service : {
+  getOrderBook: () -> (vec record {
+                             float64;
+                             float64;
+                             float64;
+                           }) query;
+  getPriceData: () -> (vec record {
+                             Time;
+                             float64;
+                           }) query;
+  placeMockOrder: (float64, float64, bool) -> ();
+}
